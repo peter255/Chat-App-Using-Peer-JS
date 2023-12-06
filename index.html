@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Using Peer JS</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+
+        .chat-container {
+            height: 500px;
+            margin: 10px auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .chat-body {
+            padding: 10px;
+            overflow-y: auto;
+            height: 410px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+        }
+
+        .user-message {
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 10px;
+            padding: 8px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .other-message {
+            background-color: #ddd;
+            border-radius: 10px;
+            padding: 8px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .input-container {
+            display: flex;
+            background-color: #fff;
+            border-top: 1px solid #ccc;
+        }
+
+        .input-box {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+        }
+
+        .send-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <input type="hidden" id="peerId" />
+
+    <h5 id="my-peer" style="text-align: center;background-color: #e7e7e7;margin: 0;padding: 10px;width: 100%;">Loading
+        My Peer
+        ID...
+        <h5 id="coonectedWith" style="text-align: center;margin: 0;padding: 10px;width: 100%;"></h5>
+        <input type="text" id="my-name" class="input-box" style="margin: 10px 0;width: 100%;"
+            placeholder="Enter your Name" />
+        <hr />
+
+        <div class="input-container">
+            <input type="text" id="peerIdInput" class="input-box" placeholder="Enter Peer ID to connect" />
+            <button id="connectBtn" class="send-button">Connect</button>
+        </div>
+
+
+        <hr />
+
+
+        <div class="chat-container">
+            <div class="chat-header">Chat</div>
+            <div class="chat-body" id="messages">
+                <!-- Chat messages will be displayed here -->
+            </div>
+            <div class="input-container">
+                <input type="text" id="messageInput" class="input-box" placeholder="Type your message...">
+                <button id="sendBtn" class="send-button">Send</button>
+            </div>
+        </div>
+
+
+
+        <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+        <script>
+
+            const peer = new Peer();
+
+            peer.on('open', (id) => {
+
+                // store peer id in hidden input field
+                document.getElementById("peerId").value = id;
+                document.getElementById("my-peer").innerHTML = 'My peer ID is: <span>' + id + '</span>';
+            });
+
+            peer.on('connection', (conn) => {
+                conn.on('data', (data) => {
+                    document.getElementById("messages").innerHTML += '<br/>' + data;
+
+                    if (document.getElementById("peerIdInput").value == "") {
+                        document.getElementById("peerIdInput").value = conn.peer;
+                    }
+                });
+            });
+
+
+            var conn;
+            // write code to connect to peer
+            document.getElementById("connectBtn").addEventListener("click", function () {
+                conn = peer.connect(document.getElementById("peerIdInput").value);
+
+                conn.on('open', () => {
+                    document.getElementById("coonectedWith").innerHTML = 'Connected with: <span style="color:green">' + conn.peer + '</span>';
+                    let message = document.getElementById("my-name").value + ': Hi';
+                    document.getElementById("messages").innerHTML += '<br/>' + message;
+                    conn.send(message);
+                });
+
+            });
+
+            // write code to send message
+            document.getElementById("sendBtn").addEventListener("click", function () {
+
+                let message = document.getElementById("my-name").value + ": " + document.getElementById("messageInput").value;
+                document.getElementById("messages").innerHTML += '<br/>' + message;
+                conn.send(message);
+            });
+
+
+            // disable send button if message box is empty or connection is not established
+            document.getElementById("messageInput").addEventListener("keyup", function () {
+                if (document.getElementById("messageInput").value == "" || document.getElementById("coonectedWith").innerHTML == "") {
+                    document.getElementById("sendBtn").disabled = true;
+                } else {
+                    document.getElementById("sendBtn").disabled = false;
+
+                }
+            });
+
+            // disable connect button if peer id box is empty or connection is already established
+            document.getElementById("peerIdInput").addEventListener("keyup", function () {
+                if (document.getElementById("peerIdInput").value == "" || document.getElementById("coonectedWith").innerHTML != "") {
+                    document.getElementById("connectBtn").disabled = true;
+                } else {
+                    document.getElementById("connectBtn").disabled = false;
+                }
+            });
+
+
+
+        </script>
+</body>
+
+</html>
